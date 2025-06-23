@@ -18,5 +18,4 @@ Imports:
     targets (>= 1.3.0),
     tarchetypes,
     dplyr,
-    readr,
-    tidyr
+    readr
