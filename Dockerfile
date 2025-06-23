@@ -10,6 +10,7 @@ WORKDIR /home/rproject
 COPY . /home/rproject
 
 # ---- Install R packages via DESCRIPTION ----
+ENV PAK_PKG_TYPE=binary
 RUN install2.r --error --skipinstalled pak \
     && R -q -e "pak::pkg_install('local::./')"
 
