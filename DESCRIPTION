@@ -1,0 +1,22 @@
+Package: r-hpc-reproducible-repo
+Type: Project
+Title: Template Targets Pipeline (HPC + Docker)
+Version: 0.0.0.9000
+Authors@R:
+    person(given = "Cole",
+           family = "Brookson",
+           role = c("aut", "cre"),
+           email = "cole.brookson@yale.edu")
+Description: A minimal R 'targets' pipeline template that runs either
+    locally or on a SLURM cluster (via Apptainer) using a container
+    built from this project.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.3)
+Imports:
+    targets (>= 1.3.0),
+    tarchetypes,
+    dplyr,
+    readr,
+    tidyr
