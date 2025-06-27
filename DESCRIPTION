@@ -1,4 +1,4 @@
-Package: r-hpc-reproducible-repo
+Package: r.hpc.reproducible.repo
 Type: Project
 Title: Template Targets Pipeline (HPC + Docker)
 Version: 0.0.0.9000
