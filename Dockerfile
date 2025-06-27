@@ -1,5 +1,6 @@
 # rockerverse main base image
 FROM rocker/r-ver:4.4.1
+ENV MAKEFLAGS="-j4"
 
 # pin the cran mirror to avoid issues with distance
 ENV PAK_PKG_TYPE=binary \
