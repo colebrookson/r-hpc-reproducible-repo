@@ -1,0 +1,6 @@
+.git
+.Rhistory
+.RData
+data/
+docs/
+outputs/
