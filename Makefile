@@ -1,6 +1,7 @@
-IMAGE = rproj
+IMAGE = r-hpc-reproducible-repo
 TAG   = latest
-SIF   = rproj.sif
+SIF   = r-hpc-reproducible-repo.sif
+AUTHOR = colebrookson
 
 # build image
 build:
