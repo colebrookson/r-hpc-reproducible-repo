@@ -1,19 +1,8 @@
-## store your packages here
+## read your DESCRIPTION DCF and pull out Depends/Imports
+d <- read.dcf("DESCRIPTION", c("Depends", "Imports"))
+pkgs <- unlist(strsplit(paste(d[1, ], collapse = ","), ","))
+pkgs <- trimws(gsub("\\(.*\\)", "", pkgs)) # drop version specs
+pkgs <- setdiff(pkgs, "R")
 
-## core packages
-library(targets)
-library(tarchetypes)
-library(renv)
-library(dotenv)
-library(conflicted) # make sure we know where function calls are coming from and which is preferred. See .Rprofile file for default preferences
-
-
-## packages necessary for startup script
-library(here)
-library(usethis)
-
-## recommended
-# library(fnmate) # quickly create functions
-# library(tflow) # allows for some nice targets add-ins
-
-
+# load them all
+lapply(pkgs, function(p) library(p, character.only = TRUE))
