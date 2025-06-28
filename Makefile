@@ -7,6 +7,21 @@ AUTHOR = colebrookson
 build:
 	docker build -t $(IMAGE):$(TAG) .
 
+# explicit AMD64 build-and-push
+build-amd:
+	DOCKER_BUILDKIT=1 docker build \
+	  --platform linux/amd64 \
+	  -t $(IMAGE):$(TAG) \
+	  --push \
+	  .
+# for local testing only (loads into your local daemon)
+build-amd-load:
+	DOCKER_BUILDKIT=1 docker build \
+	  --platform linux/amd64 \
+	  -t $(IMAGE):$(TAG) \
+	  --load \
+	  .
+
 # test locally (pipeline runs in container) 
 run:
 	docker run --rm -v $(PWD):/home/rproject -w /home/rproject $(IMAGE):$(TAG)

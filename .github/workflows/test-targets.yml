@@ -7,32 +7,21 @@ on:
       - fix/*
       - feature/*
       - hotfix/*
-  # pull_request:
-  #   branches:
-  #     - main
-  #     - master
-  #     - dev
   workflow_dispatch:
-    branches:
-      - '*'
-  #schedule:
-  #  - cron: "0 13 * * 2"
-      
+
 jobs:
   test-targets:
-    runs-on: ubuntu-latest                                
-    # run the actions inside my own image
+    runs-on: ubuntu-latest
+
+    # run the steps inside image
     container:
       image: colebrookson/r-hpc-reproducible-repo:latest
-      # if image needs environment vars, you can add:
-      # env:
-      #   CRAN_MIRROR: https://cloud.r-project.org
-      
-        steps:
-      # checkout latest code
+
+    steps:
+      # checkout the code
       - uses: actions/checkout@v4
 
-      # (optional) pull in any environment files
+      # (optional) load .env if present
       - name: load env
         run: |
           if [ -f .env ]; then
@@ -41,5 +30,4 @@ jobs:
 
       # run pipeline
       - name: run targets pipeline
-        run: |
-          Rscript -e "targets::tar_make()"
+        run: Rscript -e "targets::tar_make()"
