@@ -1,8 +1,6 @@
 ## For more information about targets see https://books.ropensci.org/targets
 ## Load your packages, e.g. library(targets).
 source("./packages.R")
-# load environment variables
-dotenv::load_dot_env()
 
 # PARALLEL SETTINGS: local vs HPC
 run_env <- Sys.getenv("TAR_RUN_ENV", unset = "local")
