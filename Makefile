@@ -1,4 +1,4 @@
-IMAGE = r-hpc-reproducible-repo
+IMAGE = colebrookson/r-hpc-reproducible-repo
 TAG   = latest
 SIF   = r-hpc-reproducible-repo.sif
 AUTHOR = colebrookson
