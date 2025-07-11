@@ -8,7 +8,10 @@ if (run_env == "hpc") {
     targets::tar_option_set(
         workspace_on_error = TRUE
     )
-    options(clustermq.scheduler = "slurm")
+    options(
+        clustermq.scheduler = "slurm",
+        clustermq.template  = "slurm/clustermq.tmpl"
+    )
 }
 
 ## load helper funcs -----------------------------------------------------------

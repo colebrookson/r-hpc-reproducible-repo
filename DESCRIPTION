@@ -21,4 +21,14 @@ Imports:
     readr,
     tidyr, 
     conflicted,
-    here
+    here,
+    rstanarm (>= 2.21.4),
+    loo,
+    bayesplot, 
+    ggplot2, 
+    tibble,
+    purrr,
+    knitr,
+    patchwork,
+    qs,
+    clustermq

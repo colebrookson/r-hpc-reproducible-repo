@@ -1,6 +1,10 @@
 # rockerverse main base image
 FROM rocker/r-ver:4.4.1
 ENV MAKEFLAGS="-j4"
+# speed up stan compilation
+ENV CXX14FLAGS="-O3 -march=native -mtune=native -fPIC" 
+# tell stan how many threads it can use 
+ENV STAN_NUM_THREADS=4
 
 # pin the cran mirror to avoid issues with distance
 ENV PAK_PKG_TYPE=binary \

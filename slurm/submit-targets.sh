@@ -4,7 +4,7 @@
 #SBATCH --error=slurm/logs/%x-%j.err
 #SBATCH --time=12:00:00 # max on GRACE cluster is 1‑00:00:00
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
+#SBATCH --mem=4G
 #SBATCH --partition=general
 #SBATCH --mail-type=END,FAIL
 
@@ -22,6 +22,8 @@ fi
 
 # run the pipeline 
 export TAR_RUN_ENV=hpc  
+# CHANGE NUMBER OF WORKHERS HERE
+export RSCMD="targets::tar_make_clustermq(workers = 32)"
 apptainer exec \
     # mounts  current dir on the host ($PWD) into  same path inside  container
     --bind "$PWD":"$PWD" \ 

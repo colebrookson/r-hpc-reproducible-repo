@@ -1,0 +1,10 @@
+template = "slurm"
+
+remote_cmd = "
+  apptainer exec --bind {{ cwd }}:{{ cwd }} $HOME/containers/rproj.sif \
+    Rscript --vanilla {{ script }}
+"
+
+n_cpus   = {{ n_cpus }}
+walltime = \"{{ walltime }}\"
+memory   = 4000                     # MB per worker; tune as needed
