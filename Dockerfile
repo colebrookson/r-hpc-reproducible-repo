@@ -31,5 +31,5 @@ ENV PAK_PKG_TYPE=binary
 COPY . /home/rproject
 RUN R -q -e "pak::pkg_install('local::./', ask = FALSE, upgrade = FALSE)"
 
-CMD ["Rscript", "example/run_pipeline.R"]
+CMD ["Rscript", "run_pipeline.R"]
 
