@@ -21,12 +21,26 @@ if [ ! -f "$IMG" ]; then
 fi
 
 # run the pipeline 
-export TAR_RUN_ENV=hpc  
-# CHANGE NUMBER OF WORKHERS HERE
-export RSCMD="targets::tar_make_clustermq(workers = 32)"
+export TAR_RUN_ENV=hpc
+
+# figure out how many models are defined in model_grid.R
+N_MODELS=$(apptainer exec \
+  --bind "$PWD":"$PWD" --pwd "$PWD" "$IMG" \
+  Rscript --vanilla -e \
+  'targets::tar_source("./example/R"); \
+    cat(nrow(build_model_grid()))')
+
+# each model uses 4 CPU cores
+CORES_PER_MODEL=4
+
+# hard upper‑limit so you don’t swamp the cluster
+MAX_WORKERS=64
+WORKERS=$(( N_MODELS < MAX_WORKERS ? N_MODELS : MAX_WORKERS ))
+
+echo "Will run $WORKERS parallel models out of $N_MODELS total"
+
+# launch the pipeline with that many workers
 apptainer exec \
-    # mounts  current dir on the host ($PWD) into  same path inside  container
-    --bind "$PWD":"$PWD" \ 
-    --pwd  "$PWD" \
-    "$IMG" \
-    Rscript -e "targets::tar_make()"
+  --bind "$PWD":"$PWD" --pwd "$PWD" "$IMG" \
+  Rscript --vanilla -e \
+  "targets::tar_make_clustermq(workers = $WORKERS)"

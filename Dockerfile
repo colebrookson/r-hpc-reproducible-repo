@@ -1,6 +1,6 @@
 # rockerverse main base image
 FROM rocker/r-ver:4.4.1
-ENV MAKEFLAGS="-j4"
+ENV MAKEFLAGS="-j1"
 # speed up stan compilation
 ENV CXX14FLAGS="-O3 -march=native -mtune=native -fPIC" 
 # tell stan how many threads it can use 
@@ -31,4 +31,5 @@ ENV PAK_PKG_TYPE=binary
 COPY . /home/rproject
 RUN R -q -e "pak::pkg_install('local::./', ask = FALSE, upgrade = FALSE)"
 
-CMD ["Rscript", "-e", "targets::tar_make()"]
+CMD ["Rscript", "example/run_pipeline.R"]
+

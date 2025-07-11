@@ -4,6 +4,16 @@ source("./packages.R")
 
 # parallel settings LOCAL VS HPC -----------------------------------------------
 run_env <- Sys.getenv("TAR_RUN_ENV", unset = "local")
+targets::tar_option_set(
+    # keep workspaces if something crashes
+    workspace_on_error = TRUE,
+    # clustermq worker settings (apply to *all* workers)
+    resources = tar_resources(
+        clustermq = tar_resources_clustermq(
+            template = if (run_env == "hpc") "slurm/clustermq.tmpl" else NULL
+        )
+    )
+)
 if (run_env == "hpc") {
     targets::tar_option_set(
         workspace_on_error = TRUE
@@ -18,38 +28,33 @@ if (run_env == "hpc") {
 targets::tar_source()
 
 ## tar plans -------------------------------------------------------------------
-# stage 1: data ----------------------------------------------------------------
+# stage 1: data ---------------------------------------------------------------
 data_plan <- tar_plan(
-    tar_target(
-        raw_data,
-        read_demo_data(),
-        format = "qs"
-    ),
-    tar_target(
-        clean_data,
-        clean_demo_data(raw_data),
-        format = "qs"
-    )
+    tar_target(raw_data, read_demo_data(), format = "qs"),
+    tar_target(clean_data, clean_demo_data(raw_data), format = "qs")
 )
 
 # stage 2: model fitting -------------------------------------------------------
 model_plan <- tar_plan(
+    # 1. full grid --------------------------------------------------------------
+    tar_target(model_specs, build_model_grid(), format = "qs"),
+
+    # 2. split into list of rows -----------------------------------------------
     tar_target(
-        model_specs,
-        build_model_grid(),
+        model_specs_rows,
+        split(model_specs, seq_len(nrow(model_specs))),
         format = "qs"
     ),
+
+    # 3. fit each row -----------------------------------------------------------
     tar_target(
         model_fits,
         {
-            spec <- model_specs[tar_group$id, ]
+            spec <- model_specs_rows[[1]] # each branch gets a single‑row tibble
             fit_one_model(spec, clean_data)
         },
-        pattern = map(model_specs),
-        format = "qs",
-        resources = tar_resources(
-            clustermq = list(n_cpus = 4, walltime = "04:00:00")
-        )
+        pattern = map(model_specs_rows),
+        format = "qs"
     )
 )
 
@@ -64,7 +69,7 @@ post_plan <- tar_plan(
     tar_target(
         waic_tbl,
         model_summary_table(model_waic),
-        cue = tar_cue(mode = "always") # refresh table each run
+        cue = tar_cue(mode = "always")
     ),
     tar_target(
         plots,
@@ -75,8 +80,4 @@ post_plan <- tar_plan(
 )
 
 ## pipeline object -------------------------------------------------------------
-list(
-    data_plan,
-    model_plan,
-    post_plan
-)
+list(data_plan, model_plan, post_plan)

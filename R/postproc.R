@@ -20,7 +20,7 @@ compute_waic <- function(fit) {
 #' @return NULL
 #' @export
 model_summary_table <- function(waic_list,
-                                path = "./example/outputs/model_waic.tex") {
+                                path = "./outputs/model_waic.tex") {
     df <- purrr::imap_dfr(
         waic_list,
         ~ data.frame(
@@ -51,11 +51,11 @@ model_summary_table <- function(waic_list,
 #' @return NULL
 #' @export
 diagnostic_plots <- function(fit, model_id) {
-    out_dir <- "./example/figs"
+    out_dir <- "./figs"
     dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
-    # density
-    dens <- bayesplot::mcmc_dens_overlay(as.matrix(fit)) +
+    # density (use full array, keeps chain dimension)
+    dens <- bayesplot::mcmc_dens_overlay(as.array(fit)) +
         ggplot2::theme_bw()
 
     ggplot2::ggsave(

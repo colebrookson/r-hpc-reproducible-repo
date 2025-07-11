@@ -10,7 +10,7 @@
 #' @return data.frame
 #' @export
 read_demo_data <- function(
-    path = "./example/data/demo_data.csv") {
+    path = "./data/demo_data.csv") {
     readr::read_csv(path, show_col_types = FALSE)
 }
 

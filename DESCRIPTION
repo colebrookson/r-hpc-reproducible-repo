@@ -22,6 +22,7 @@ Imports:
     tidyr, 
     conflicted,
     here,
+    qs2,
     rstanarm (>= 2.21.4),
     loo,
     bayesplot, 
@@ -31,4 +32,6 @@ Imports:
     knitr,
     patchwork,
     qs,
+    visNetwork,
+    webshot2,
     clustermq

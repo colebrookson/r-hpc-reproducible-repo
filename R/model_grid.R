@@ -1,14 +1,17 @@
 #' model_grid.R
 #'
 #' build a tibble of model specs:
-#'   * formula
-#'   * family (gaussian, student_t)
-#'   * prior_sd (normal(0, sd))
+#'   * formula  (list-column of formula objects)
+#'   * family   (list-column of family objects)
+#'   * prior_sd (numeric)
 #'
 #' @return tibble
 #' @export
 build_model_grid <- function() {
-    form_vec <- c(
+    # --------------------------------------------------------------------------
+    # 1. vectors of choices -----------------------------------------------------
+    # --------------------------------------------------------------------------
+    form_vec <- list(
         y ~ x1 + x2,
         y ~ x1 + x2 + x3,
         y ~ x1 + x2 + x3 + x4 + f1,
@@ -17,16 +20,30 @@ build_model_grid <- function() {
 
     family_vec <- list(
         gaussian = stats::gaussian(),
-        student  = rstanarm::student_t(df = 7)
+        lognormal = stats::gaussian(link = "log")
     )
 
-    prior_sd <- c(1, 2.5)
+    prior_sd_vec <- c(1, 2.5)
 
-    expand.grid(
-        formula = form_vec,
-        family = family_vec,
-        prior_sd = prior_sd,
+    # --------------------------------------------------------------------------
+    # 2. expand over *indices* (avoids coercion) -------------------------------
+    # --------------------------------------------------------------------------
+    grid <- expand.grid(
+        formula_id = seq_along(form_vec),
+        family_id = seq_along(family_vec),
+        prior_sd = prior_sd_vec,
+        KEEP.OUT.ATTRS = FALSE,
         stringsAsFactors = FALSE
-    ) |>
-        tibble::as_tibble()
+    )
+
+    # --------------------------------------------------------------------------
+    # 3. replace indices with the actual objects -------------------------------
+    # --------------------------------------------------------------------------
+    grid$formula <- form_vec[grid$formula_id]
+    grid$family <- family_vec[grid$family_id]
+
+    grid$formula_id <- NULL
+    grid$family_id <- NULL
+
+    tibble::as_tibble(grid)
 }
