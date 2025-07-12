@@ -73,7 +73,10 @@ post_plan <- tar_plan(
     ),
     tar_target(
         plots,
-        diagnostic_plots(model_fits, tar_group$id),
+        diagnostic_plots(
+            fit = model_fits,
+            model_id = sprintf("model_%02d", tar_branch_index()) # e.g. model_01
+        ),
         pattern = map(model_fits),
         iteration = "vector"
     )

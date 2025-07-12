@@ -54,12 +54,12 @@ model_waic|pattern|fcc224c0c7e4f015|691b6318685a11d7||-1653335221||||9167797|rds
 compute_waic|function|abc9f8f74164baae
 clean_demo_data|function|53e9ec9210b0dd65
 build_model_grid|function|eeead3d48cc0df42
-diagnostic_plots|function|96cbf92c2502ca0e
+diagnostic_plots|function|e7e2c349033ba359
 pkgs|object|1de2a94b71a8a10d
 d|object|2bdd8b73b28aaffa
-.Random.seed|object|aac14c40ec34cadb
+.Random.seed|object|5089e2a8b4ff5717
 run_env|object|919b20168b07f53b
 read_demo_data|function|6f3bb98226213a86
 fit_one_model|function|121fc1b1530224a0
 model_summary_table|function|306daa63f8fdf3b8
-plots_a98c665e3368fbde|branch||6cf7626850213fa4|ac51654501ea01f7|2073642990||t20280.8468022769s||0|rds|local|vector|plots||0.145||object of type 'closure' is not subsettable
+plots_a98c665e3368fbde|branch||292d231cd46f5a31|8b7fc276b4562766|2073642990||t20280.8468022769s||0|rds|local|vector|plots||0.148||argument 'names' is missing, with no default
