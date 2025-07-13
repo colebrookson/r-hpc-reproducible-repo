@@ -62,20 +62,26 @@ model_plan <- tar_plan(
 post_plan <- tar_plan(
     tar_target(
         model_waic,
-        compute_waic(model_fits),
+        {
+            spec <- model_specs_rows[[1]]
+            compute_waic(model_fits)
+        },
         pattern = map(model_fits),
         iteration = "list"
     ),
     tar_target(
         waic_tbl,
-        model_summary_table(model_waic),
+        model_summary_table(model_waic, model_specs_rows),
         cue = tar_cue(mode = "always")
     ),
     tar_target(
         plots,
-        diagnostic_plots(model_fits, tar_group$id),
+        {
+            spec <- model_specs_rows[[1]]
+            diagnostic_plots(model_fits, spec$model_id)
+        },
         pattern = map(model_fits),
-        iteration = "vector"
+        iteration = "list"
     )
 )
 
