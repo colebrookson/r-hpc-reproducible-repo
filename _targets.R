@@ -36,24 +36,21 @@ data_plan <- tar_plan(
 
 # stage 2: model fitting -------------------------------------------------------
 model_plan <- tar_plan(
-    # 1. full grid --------------------------------------------------------------
+    # 1. full grid -------------------------------------------------------------
     tar_target(model_specs, build_model_grid(), format = "qs"),
 
     # 2. split into list of rows -----------------------------------------------
-    tar_target(
-        model_specs_rows,
-        split(model_specs, seq_len(nrow(model_specs))),
-        format = "qs"
+    tar_group_by(
+        model_versions,
+        model_specs,
+        model_id
     ),
 
-    # 3. fit each row -----------------------------------------------------------
+    # 3. fit each row ----------------------------------------------------------
     tar_target(
         model_fits,
-        {
-            spec <- model_specs_rows[[1]] # each branch gets a single‑row tibble
-            fit_one_model(spec, clean_data)
-        },
-        pattern = map(model_specs_rows),
+        fit_one_model(model_versions, clean_data),
+        pattern = map(model_versions),
         format = "qs"
     )
 )
@@ -63,22 +60,23 @@ post_plan <- tar_plan(
     tar_target(
         model_waic,
         compute_waic(model_fits),
-        pattern = map(model_fits),
+        pattern = map(model_fits, model_versions),
         iteration = "list"
     ),
     tar_target(
         waic_tbl,
-        model_summary_table(model_waic),
+        model_summary_table(model_waic, model_versions),
         cue = tar_cue(mode = "always")
     ),
     tar_target(
         plots,
-        diagnostic_plots(
-            fit = model_fits,
-            model_id = sprintf("model_%02d", tar_branch_index()) # e.g. model_01
+        diagnostic_plots(model_fits, model_versions$model_id,
+            # if testing = TRUE, it prevents ALL plots from being saved
+            # useful for quick checks without generating all plots
+            testing = TRUE
         ),
-        pattern = map(model_fits),
-        iteration = "vector"
+        pattern = map(model_fits, model_versions),
+        iteration = "list"
     )
 )
 

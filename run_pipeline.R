@@ -34,12 +34,13 @@
 # ---------------------------------------------------------------------
 
 # ---- 1. draw the graph -------------------------------------------------------
-# targets::tar_config_unset(c("reporter_outdated", "reporter_make"))
-# vis <- targets::tar_visnetwork(
-#     targets_only    = TRUE,
-#     reporter        = "balanced",
-#     callr_function  = NULL # ← run in the current session
-# )
+vis <- targets::tar_visnetwork(
+    targets_only = TRUE,
+    reporter     = "silent"
+)
+try(
+    visNetwork::visSave(vis, "current_targets.html")
+)
 
 # visNetwork::visSave(vis, "current_targets.html")
 

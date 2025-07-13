@@ -8,9 +8,7 @@
 #' @return tibble
 #' @export
 build_model_grid <- function() {
-    # --------------------------------------------------------------------------
-    # 1. vectors of choices -----------------------------------------------------
-    # --------------------------------------------------------------------------
+    # vectors of choices
     form_vec <- list(
         y ~ x1 + x2,
         y ~ x1 + x2 + x3,
@@ -25,9 +23,7 @@ build_model_grid <- function() {
 
     prior_sd_vec <- c(1, 2.5)
 
-    # --------------------------------------------------------------------------
-    # 2. expand over *indices* (avoids coercion) -------------------------------
-    # --------------------------------------------------------------------------
+    # expand over *indices* (avoids coercion)
     grid <- expand.grid(
         formula_id = seq_along(form_vec),
         family_id = seq_along(family_vec),
@@ -45,5 +41,19 @@ build_model_grid <- function() {
     grid$formula_id <- NULL
     grid$family_id <- NULL
 
-    tibble::as_tibble(grid)
+    grid <- tibble::as_tibble(grid)
+    grid$model_id <- paste0("model_", seq_len(nrow(grid)))
+
+    # Save as LaTeX table
+    tex <- knitr::kable(
+        grid,
+        format = "latex",
+        booktabs = TRUE,
+        digits = 2,
+        col.names = names(grid)
+    )
+    dir.create("outputs", showWarnings = FALSE)
+    writeLines(tex, "outputs/model_grid.tex")
+
+    grid
 }
