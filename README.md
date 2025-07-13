@@ -37,6 +37,27 @@ The table below is an overhead view of the repository structure.  Read this firs
 
 ---
 
+## Fork & run under *your* Docker Hub namespace
+
+Want to publish your *own* image (instead of pushing to
+`colebrookson/r-hpc-reproducible-repo`)?  
+Just override two variables when you call `make`.
+
+```bash
+# 1. Pick a namespace and tag
+export IMAGE=myhubuser/r-demo          # or ghcr.io/<org>/r-demo
+export TAG=v0.1.0                      # any label you like
+
+# 2. Build the image locally
+make build                              # uses ${IMAGE}:${TAG}
+
+# 3. Push it to your registry (after `docker login`)
+make push                               # pushes ${IMAGE}:${TAG}
+
+# 4. Run the pipeline with that same tag
+make run                                # mounts your repo, executes inside container
+```
+
 ## Clone & run with the pre‑built image
 
 If you have Docker installed, you can run the pipeline immediately
