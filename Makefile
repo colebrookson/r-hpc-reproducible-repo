@@ -52,3 +52,21 @@ shell:
 # build Apptainer image from local Docker daemon 
 sif: build
 	singularity build $(SIF) docker-daemon://$(IMAGE):$(TAG)
+
+
+# ADD SOME PUSH VERSIONS HERE FOR EASE
+.PHONY: push push-amd
+
+## push: build the default image (if needed) and upload it
+push: build                 ## ⇒ docker push $(IMAGE):$(TAG)
+	docker push $(IMAGE):$(TAG)
+
+## push-amd: build linux/amd64 only and upload it
+## keeps build‑and‑push separate so you can also call `make build-amd-load`
+push-amd:
+	@echo "→ building amd64 image and pushing to Docker Hub…"
+	DOCKER_BUILDKIT=1 docker buildx build \
+	  --platform linux/amd64 \
+	  -t $(IMAGE):$(TAG) \
+	  --push \
+	  .
