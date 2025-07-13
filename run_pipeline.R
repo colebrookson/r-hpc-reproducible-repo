@@ -38,7 +38,9 @@ vis <- targets::tar_visnetwork(
     targets_only = TRUE,
     reporter     = "silent"
 )
-visNetwork::visSave(vis, "current_targets.html")
+try(
+    visNetwork::visSave(vis, "current_targets.html")
+)
 
 if (requireNamespace("webshot2", quietly = TRUE)) {
     webshot2::webshot(

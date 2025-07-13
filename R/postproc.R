@@ -16,20 +16,26 @@ compute_waic <- function(fit) {
 #' model_summary_table
 #'
 #' @param waic_list named list of waic objects
-#' @param specs_list list of model specs (tibble rows)
-#'   with columns: formula, family, prior_sd
-#'   (e.g. from [build_model_grid()])
+#' @param model_versions a tibble with model_id and tar_group
+#'   (if available) to match with waic_list
+#'   (if waic_list is named by tar_group, this will join on that)
+#'   otherwise, assumes order matches waic_list
 #' @param path output .tex file
 #' @return NULL
 #' @export
-model_summary_table <- function(waic_list, specs_list,
-                                path = "./outputs/model_waic.tex") {
-    model_ids <- purrr::map_chr(specs_list, ~ .x$model_id)
-    df <- purrr::map2_dfr(
-        waic_list,
-        model_ids, ~ data.frame(
-            model = .y,
-            waic = .x$estimates["waic", "Estimate"]
+model_summary_table <- function(
+    waic_list, model_versions,
+    path = "./outputs/model_waic.tex") {
+    # Extract formulas from model_versions
+    formulas <- purrr::map_chr(
+        model_versions$formula,
+        ~ paste(deparse(.x), collapse = "")
+    )
+    df <- tibble::tibble(
+        model_id = model_versions$model_id,
+        formula = formulas,
+        waic = purrr::map_dbl(
+            waic_list, ~ .x$estimates["waic", "Estimate"]
         )
     )
 
@@ -38,7 +44,7 @@ model_summary_table <- function(waic_list, specs_list,
         format = "latex",
         booktabs = TRUE,
         digits = 2,
-        col.names = c("model", "waic")
+        col.names = c("model", "formula", "waic")
     )
 
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
@@ -54,16 +60,14 @@ model_summary_table <- function(waic_list, specs_list,
 #' @return          NULL
 #' @export
 diagnostic_plots <- function(fit, model_id) {
-    out_dir <- "./figs"
-    dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-
+    # out_dir <- "./figs"
+    # dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+    print(model_id)
     # full draws array: iterations × chains × parameters
     arr <- as.array(fit)
-    # print(str(arr))
     nch <- dim(arr)[2L] # number of chains
-    # print(str(nch))
     pars <- dimnames(arr)$parameters[seq_len(min(5, dim(arr)[3L]))]
-    # print(str(pars))
+
     # 1. density ---------------------------------------------------------------
     dens <- if (nch > 1) {
         bayesplot::mcmc_dens_overlay(arr[, , pars, drop = FALSE])
@@ -74,17 +78,17 @@ diagnostic_plots <- function(fit, model_id) {
     }
     # exists(model_id)
     ggplot2::ggsave(
-        here(out_dir, paste0(model_id, "_dens.png")),
+        here("./figs/", paste0(model_id, "_dens.png")),
         dens,
         width = 6, height = 4, dpi = 300
     )
 
-    # # 2. pairs plot (≥2 params) ------------------------------------------------
+    # 2. pairs plot (≥2 params) ------------------------------------------------
     # if (length(pars) >= 2) {
     #     mat <- posterior::as_draws_matrix(arr)[, pars, drop = FALSE]
     #     pr <- bayesplot::mcmc_pairs(mat, pars = pars)
     #     ggplot2::ggsave(
-    #         file.path(out_dir, paste0(model_id, "_pairs.png")),
+    #         here(out_dir, paste0(model_id, "_pairs.png")),
     #         pr,
     #         width = 6, height = 6, dpi = 300
     #     )
