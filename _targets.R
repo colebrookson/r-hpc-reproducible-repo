@@ -70,7 +70,11 @@ post_plan <- tar_plan(
     ),
     tar_target(
         plots,
-        diagnostic_plots(model_fits, model_versions$model_id),
+        diagnostic_plots(model_fits, model_versions$model_id,
+            # if testing = TRUE, it prevents ALL plots from being saved
+            # useful for quick checks without generating all plots
+            testing = TRUE
+        ),
         pattern = map(model_fits, model_versions),
         iteration = "list"
     )
