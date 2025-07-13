@@ -1,149 +1,182 @@
-# r-reproducible-repo
+# Reproducible Targets Pipeline – Getting Started
 
-The repository provides a template for reproducible R projects. It uses [`{targets}`](https://books.ropensci.org/targets/) to manage code execution (among other things) and [`{renv}`](https://rstudio.github.io/renv/index.html) to manage packages. Compute environments are managed via [docker](https://rocker-project.org/) and continuous integration happens in [github actions](https://docs.github.com/en/actions).
+The goal of this repository is to provide a **reproducible R modelling pipeline** that runs an analysis geared towards a Bayesian statistical modeling framework, using the `targets` package for reproducible workflows. The pipeline is designed to be run in a Docker container, which can be executed locally or on a high-performance computing (HPC) cluster. It is only Bayesian in the sense that it uses `rstanarm` for model fitting, but the pipeline can be adapted to other modelling frameworks like `NIMBLE` or `brms`. Rstan/rstanarm is used here as an example since it requires a C++ compiler and is a common choice for Bayesian modelling in R. More on that later. 
 
-## How to use the template
+## What is this repository for (analysis-type wise)?
+***A key note here** is that this pipeline is NOT optimized for speed or efficiency, but rather for **reproducibility** and ease of use. It is designed to be run with minimal setup, making it accessible for users who may not have extensive experience with R or Docker. The pipeline is structured to allow for easy modification and extension, so you can adapt it to your specific needs. Please note that this is a **demo pipeline** and not a production-ready solution. It is meant to serve as a starting point for your own reproducible modelling projects. **As an aside**, in general, some good advice I've gotten is that if you're interested in doing HPC work, you should probably stay as close to the machine as possible. That is, the use of tools and languages and packages and dependencies that take you further away from the physical machine you're on will likely a) slow you down significantly, and b) make it MUCH harder to debug issues. This is absolutely not a principle that is followed in this repository. This is because this is built for the use case of "most of my work can be done locally and I want all the modern reproducibility tools that work nice locally, but I will also need, at some point, to run a bunch of models on a cluster because it would just take too long locally". If you are running TRULY large models or simulations, you should a) probably ditch `targets`, and b) probably ditch Stan. Heck, you should ditch R altogether and use something else like Julia or C++. This is for the R-users who need an in-between solution and are NOT going to spend a lot of time speeding up their workflow.*
 
-1)  On [github.com](https://github.com/viralemergence/r-reproducible-repo) click "Use this template" or run the following code from the command line.
+Key here is that you should be able to run this pipeline host-side or on an HPC cluster with minimal setup, and without needing to install R or any packages on the host system. This guide will walk you through the steps to get started. It assumes you're familiar with basic R (specifically the `targets` package) and Docker concepts, but it will guide you through the process of running the pipeline.
 
-```         
-gh repo create my-new-project --template viralemergence/r-reproducible-repo --private --clone
+> Run the full **Bayesian modelling demo** locally or on an HPC in minutes,
+> with no host–side R installation required.
+
+---
+
+## Some basics on the contents of this repository
+
+The table below is an overhead view of the repository structure.  Read this first—it shows where each moving part lives and saves you from grepping the entire tree.
+
+| Folder / file                   | Purpose                                                   |
+|---------------------------------|-----------------------------------------------------------|
+| `Dockerfile`, `sys_deps/`       | Builds the container image (or pull it ready‑made).       |
+| `R/`                     | Data‑simulation script, helper functions, `_targets.R`.   |
+| `slurm/`                        | Templates & launcher to run the same container on SLURM.  |
+| `Makefile`                      | **One‑command** UX: `make build` · `make run` · `make push`. |
+| `current_targets.png`           | Auto‑generated DAG of the pipeline (see §5).              |
+
+---
+
+## 1 · Prerequisites
+
+| Tool             | Minimum Version | Quick check                             |
+|------------------|-----------------|-----------------------------------------|
+| **Docker**       | $\geq 24$            | `docker --version`                      |
+| **GNU make**     | any             | `make --version`                        |
+| **Git**          | $\geq 2.40$             | `git --version`                         |
+| **(Optional) Apptainer/Singularity** | 1.2+ (HPC only) | `apptainer --version` |
+
+---
+
+## Clone & run with the pre‑built image
+
+If you have Docker installed, you can run the pipeline immediately
+without building the image yourself. This is the recommended way to get started. Eventually you may want to build the image yourself with the dependencies you'll need, but for now, let's use the pre-built image.
+
+```bash
+git clone https://github.com/<YOUR-ORG>/r-hpc-reproducible-repo.git
+cd r-hpc-reproducible-repo
+make run            # pulls colebrookson/r-hpc-reproducible-repo:latest if missing
 ```
 
-2)  [Clone the repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) from Github to your local machine
+*First run downloads ≈ 2 GB; subsequent runs start instantly.*
 
-```         
-# in location where the project should live
-git clone https://github.com/user-name/repo-name.git
+Outputs appear in:
+
+| Path                           | Contents                               |
+|--------------------------------|----------------------------------------|
+| `_targets/objects/`            | Fitted Stan models (`.qs`)             |
+| `example/outputs/model_waic.tex` | LaTeX WAIC table                      |
+| `example/figs/`                | Density / pairs / effect PNGs         |
+| `current_targets.png`          | Visual DAG snapshot (see §5)           |
+
+---
+
+## 3 · Building the image yourself (optional)
+
+```bash
+make build        # fully reproducible local build
+make push         # push to your Docker Hub repo (if you have one)
 ```
 
-3)  Open `scripts/project_startup.R` and follow the script.
+`make build` reuses cached layers; editing `DESCRIPTION` or `sys_deps.sh`
+triggers only the minimal rebuild.
 
-4)  Write code in {targets}, use `renv::snapshot()` to keep dependencies up to date, and share your project with github!
+---
 
-    -   `usethis::use_r("my-function")` will create a new file in your /R folder
-    -   [`{fnmate}`](https://github.com/MilesMcBain/fnmate) is super handy for this as well.
+## 4 · Running on SLURM with Apptainer
 
-## Includes
-
--   \_targets.R
--   packages.R
--   .github/workflow
--   .env
--   /R
--   /Scripts/project_startup.R
--   License.md
--   Readme.md
-
-## Nice conventions
-
--   List all your packages in `packages.R` 
--   All targets are nouns and all functions are verbs
--   Each function lives in its own file.
--   Each function is well documented with roxygen tags (press `cmd + shift + r` with cursor inside the function parenthesis)
--   Use the scripts folder for code that works outside the targets framework and that you want to save (e.g. testing/debugging functions, data wrangling that only has to happen once, etc.)
--   Use psuedo-code/in line comments to make `_targets.R` easier to follow
--   Use an R formatter like [`{air}`](https://www.tidyverse.org/blog/2025/02/air/) to keep your code tidy or use built-in IDE functions e.g. `cmd + shift + i` in rstudio.
--   Commit often. Keep commit messages brief.
--   Use a branching strategy and issues when working in GIT to keep work manageable. Each branch should address a specific issue.
-    -   enhancement - branch name used for improving the code base (re-factoring, improving documentation, etc)
-    -   fix - branch name used to repair some broken piece of code previously commited to `main`
-    -   feature - branch name used for adding new elements to the code base (e.g. new modeling approach, new visualizations, etc)
-    -   hotfix - branch name used to repair something that needs immediate attention.
-
-### renv
-
-At some point `renv` will cause you a headache. Its a good idea to talk to collaborators about how you will manage the lock file.
-
-Ideally one person runs `renv::init()` when the project is started and everyone can just use `renv::restore()` to keep their package versions in sync. In practice there is always one package that causes an issue. This becomes more of a problem as R versions diverge among collaborators.
-
-Possible solutions: burn it to the ground run `renv::deactivate(clean = TRUE)` and then re-initialize `renv`. Less drastic measures include using `renv::hydrate()` to load whatever version of the package is already on your machine or `renv::snapshot()` to update the lockfile with new package versions because some package won't compile.
-
-## Running Github Actions locally (e.g. not wasting time/server minutes)
-
-The test-targets.yml file includes conditions for running github actions locally using [ACT](https://nektosact.com/introduction.html).
-
-`act` is a command line tool so all instructions should be run in a terminal.
-
-These instructions are for Mac/Linux machines - windows users should be able to follow along with [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
-
-### Installation
-
-0)  install [homebrew](https://brew.sh/) for package management
-1)  install docker `brew install docker` or use [desktop application](https://www.docker.com/products/docker-desktop/)
-2)  install act `brew install act`
-
-### The fundamentals
-
-### List workflows
-
-```         
-act -l
-
-### returns
-# Stage  Job ID        Job name      Workflow name  Workflow file     Events                
-# 0      test-targets  test-targets  test-targets   test-targets.yml  push,workflow_dispatch
+```bash
+make sif                          # converts Docker image → .sif
+sbatch slurm/submit-targets.sh    # submits the orchestrator job
 ```
 
-This repo has a single workflow file called `test-targets.yml` that lives in `.github/workflows`.
+The orchestrator auto‑detects how many model specs exist and launches one
+worker per spec (capped at 32) via **clustermq**; each worker re‑enters the
+same `.sif`.
 
-The `Job ID` comes from line 22 in the yml file and since we did not explicitly set a name, `Job name` is the same as `Job ID`. `Job Name` is what will be displayed on github when the job is run.
+---
 
-Workflow name comes from line 1 and is the name of the workflow that will be displayed on github when the action is run.
+## 5 · Pipeline graph (auto‑generated)
 
-`Events` tells us under what conditions the workflow will be run. In this case, on push and via manual dispatch (clicking a button in github).
+Every time you run `make run` or the SLURM job, a fresh DAG is saved:
 
-#### Filtering the list
-
-The following command will list all workflows that are triggered on pull request.
-
-```         
-act -l pull_request
+```r
+# executed automatically inside the container
+vis <- targets::tar_visnetwork(targets_only = TRUE, reporter = "silent")
+visNetwork::visSave(vis, "current_targets.html")
+if (requireNamespace("webshot2", quietly = TRUE)) {
+  webshot2::webshot("current_targets.html", "current_targets.png",
+                    vwidth = 1600, vheight = 900)
+}
 ```
 
-Since none of the actions in the repo are setup to run after a pull request is initiated, no items are returned.
+`current_targets.png` lives in the repo root; open it to understand the current
+target topology.
 
-By default, `act` looks for workflows with `push` triggers.
+*(Requires `visNetwork` and `webshot2`, already installed in the image.)*
 
-### run workflows
+---
 
-Note: on an intel mac I had to make some minor changes to two files
+## 6 · Troubleshooting ☂
 
-```         
-### change credsStore to credStore
-vim ~/.docker/config.json
+| Symptom / log snippet                           | Likely cause                | Fix |
+|-------------------------------------------------|-----------------------------|-----|
+| `Cannot connect to the Docker daemon…`          | User not in `docker` group  | `sudo usermod -aG docker $USER && log out/in` |
+| `package ‘xyz’ is not available` during build   | Missing system libraries    | Add `apt-get` line in `sys_deps/sys_deps.sh`, then `make build` |
+| `Error: object of type 'closure' is not…` in targets | Mis‑shaped grid / split bug | Re‑run after editing `example/R/model_grid.R` (see code comments) |
+| SLURM jobs pending forever                      | Partition limits            | Adjust `--partition` and `--mem` in `slurm/submit-targets.sh` |
 
-### add the following text to avoid errors with mounting docker images
-### --container-daemon-socket -
-~ % vim ~/.actrc
+---
+
+## 7 · Advanced / Customising the stack
+
+### 7.1 Add or switch modelling back‑ends (e.g. **NIMBLE**)
+
+1. **R package**  
+   *Add to* `DESCRIPTION → Imports:`  
+
+   ```diff
+   +    nimble,
+   ```
+
+2. **System libraries**  
+   NIMBLE needs a Fortran compiler and OpenMP (already present).  
+   If additional libs are required, append them to `sys_deps/sys_deps.sh`
+   (`libopenblas-dev`, `gfortran`, etc. are already installed).
+
+3. **Re‑build**  
+
+   ```bash
+   make build push      # local + Docker Hub
+   # or just `make build` if working offline
+   ```
+
+4. **Use in targets**  
+   Create new helpers in `example/R/` (e.g., `fit_nimble_models.R`) and add a
+   new `tar_plan` to `_targets.R`.
+
+### 7.2 When a package fails to compile
+
+1. Read the last 40 lines of the build log (`make build |& tee build.log`).  
+2. Identify missing *header* or *symbol* (e.g., `hdf5.h` → `libhdf5-dev`).  
+3. Edit `sys_deps/sys_deps.sh`, add the `apt-get install` line.  
+4. Re‑run `make build`.
+
+### 7.3 Changing Stan resource use
+
+*   **CPU / wall‑time per worker**: edit `slurm/clustermq.tmpl`
+    (`n_cpus`, `walltime`).  
+*   **Chains / iterations**: edit `fit_one_model()` in
+    `example/R/fit_models.R`.
+
+### 7.4 Running *without* Docker
+
+```r
+# install R 4.4, then
+install.packages(c("targets", "tarchetypes", "rstanarm", "qs2", …))
+source("packages.R"); targets::tar_make()
 ```
 
-#### Run all workflow files that have an "on push" trigger
+…but expect more friction (compiler toolchain, matching R versions).
 
-```         
-act
-```
+---
 
-#### run a specific job
+## 8 · Where to ask questions
 
-```         
-act -j test-targets
-```
+* **GitHub Issues** — bug reports & feature requests.  
+* Package‑specific questions — their respective repos (rstanarm, targets, etc.).  
+* HPC quirks — contact your cluster admins (e.g., check available R modules).
 
-#### run a specific job and re-use containers
+---
 
-Caches containers to make things more efficient.
-
-```         
-act -r -j test-targets
-```
-
-### Documentation
-
-To see all the options you can set with `act` run
-
-```         
-act --help
-```
-
-For some worked examples see the[usage guide](https://nektosact.com/usage/index.html).
+Happy reproducible modelling! 

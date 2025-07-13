@@ -60,9 +60,6 @@ model_summary_table <- function(
 #' @return          NULL
 #' @export
 diagnostic_plots <- function(fit, model_id) {
-    # out_dir <- "./figs"
-    # dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-    print(model_id)
     # full draws array: iterations × chains × parameters
     arr <- as.array(fit)
     nch <- dim(arr)[2L] # number of chains
@@ -78,70 +75,70 @@ diagnostic_plots <- function(fit, model_id) {
     }
     # exists(model_id)
     ggplot2::ggsave(
-        here("./figs/", paste0(model_id, "_dens.png")),
+        here("./figs/diagnostics/", paste0(model_id, "_dens.png")),
         dens,
         width = 6, height = 4, dpi = 300
     )
 
     # 2. pairs plot (≥2 params) ------------------------------------------------
-    # if (length(pars) >= 2) {
-    #     mat <- posterior::as_draws_matrix(arr)[, pars, drop = FALSE]
-    #     pr <- bayesplot::mcmc_pairs(mat, pars = pars)
-    #     ggplot2::ggsave(
-    #         here(out_dir, paste0(model_id, "_pairs.png")),
-    #         pr,
-    #         width = 6, height = 6, dpi = 300
-    #     )
-    # }
+    if (length(pars) >= 2) {
+        mat <- posterior::as_draws_matrix(arr)[, pars, drop = FALSE]
+        pr <- bayesplot::mcmc_pairs(mat, pars = pars)
+        ggplot2::ggsave(
+            here("./figs/diagnostics/", paste0(model_id, "_pairs.png")),
+            pr,
+            width = 6, height = 6, dpi = 300
+        )
+    }
 
-    # # 3. posterior predictive density ------------------------------------------
-    # ppc <- rstanarm::posterior_predict(fit) |>
-    #     as.data.frame() |>
-    #     tidyr::pivot_longer(dplyr::everything(),
-    #         names_to  = "obs",
-    #         values_to = "pred"
-    #     ) |>
-    #     ggplot2::ggplot(ggplot2::aes(pred)) +
-    #     ggplot2::geom_density() +
-    #     ggplot2::theme_bw()
+    # 3. posterior predictive density ------------------------------------------
+    ppc <- rstanarm::posterior_predict(fit) |>
+        as.data.frame() |>
+        tidyr::pivot_longer(dplyr::everything(),
+            names_to  = "obs",
+            values_to = "pred"
+        ) |>
+        ggplot2::ggplot(ggplot2::aes(pred)) +
+        ggplot2::geom_density() +
+        ggplot2::theme_bw()
 
-    # ggplot2::ggsave(
-    #     file.path(out_dir, paste0(model_id, "_ppc.png")),
-    #     ppc,
-    #     width = 6, height = 4, dpi = 300
-    # )
+    ggplot2::ggsave(
+        here("./figs/diagnostics/", paste0(model_id, "_ppc.png")),
+        ppc,
+        width = 6, height = 4, dpi = 300
+    )
 
-    # # 4. coefficient intervals -------------------------------------------------
-    # draws <- posterior::as_draws_matrix(fit)
+    # 4. coefficient intervals -------------------------------------------------
+    draws <- posterior::as_draws_matrix(fit)
 
-    # # keep only coefficient columns: rstanarm stores as "(Intercept)", "x1", etc
-    # coef_cols <- colnames(draws)[colnames(draws) %in% names(fit$coefficients)]
+    # keep only coefficient columns: rstanarm stores as "(Intercept)", "x1", etc
+    coef_cols <- colnames(draws)[colnames(draws) %in% names(fit$coefficients)]
 
-    # if (length(coef_cols) > 0) {
-    #     coef_df <- posterior::summarise_draws(
-    #         draws[, coef_cols, drop = FALSE]
-    #     ) |>
-    #         dplyr::select(variable, median, lower = q5, upper = q95) |>
-    #         dplyr::arrange(median)
-    #     # rename for ggplot
-    #     colnames(coef_df) <- c("variable", "median", "lower", "upper")
+    if (length(coef_cols) > 0) {
+        coef_df <- posterior::summarise_draws(
+            draws[, coef_cols, drop = FALSE]
+        ) |>
+            dplyr::select(variable, median, lower = q5, upper = q95) |>
+            dplyr::arrange(median)
+        # rename for ggplot
+        colnames(coef_df) <- c("variable", "median", "lower", "upper")
 
-    #     coef_plot <- ggplot2::ggplot(
-    #         coef_df,
-    #         ggplot2::aes(x = median, y = variable)
-    #     ) +
-    #         ggplot2::geom_vline(xintercept = 0, linetype = "dashed") +
-    #         ggplot2::geom_pointrange(
-    #             ggplot2::aes(xmin = lower, xmax = upper),
-    #             fatten = 1, size = 0.4
-    #         ) +
-    #         ggplot2::labs(x = "Effect (median ± 90% CI)", y = NULL) +
-    #         ggplot2::theme_bw()
+        coef_plot <- ggplot2::ggplot(
+            coef_df,
+            ggplot2::aes(x = median, y = variable)
+        ) +
+            ggplot2::geom_vline(xintercept = 0, linetype = "dashed") +
+            ggplot2::geom_pointrange(
+                ggplot2::aes(xmin = lower, xmax = upper),
+                fatten = 1, size = 0.4
+            ) +
+            ggplot2::labs(x = "Effect (median ± 90% CI)", y = NULL) +
+            ggplot2::theme_bw()
 
-    #     ggplot2::ggsave(
-    #         file.path(out_dir, paste0(model_id, "_coef.png")),
-    #         coef_plot,
-    #         width = 6, height = 4, dpi = 300
-    #     )
-    # }
+        ggplot2::ggsave(
+            here("./figs/diagnostics/", paste0(model_id, "_coef.png")),
+            coef_plot,
+            width = 6, height = 4, dpi = 300
+        )
+    }
 }
