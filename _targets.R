@@ -8,8 +8,8 @@ targets::tar_option_set(
     # keep workspaces if something crashes
     workspace_on_error = TRUE,
     # clustermq worker settings (apply to *all* workers)
-    resources = tar_resources(
-        clustermq = tar_resources_clustermq(
+    resources = targets::tar_resources(
+        clustermq = targets::tar_resources_clustermq(
             template = if (run_env == "hpc") "slurm/clustermq.tmpl" else NULL
         )
     )

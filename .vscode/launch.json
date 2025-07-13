@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "R-Debugger",
+            "request": "launch",
+            "name": "Run R Pipeline Script",
+        }
+    ],
+    "inputs": [
+        {
+            "id": "rScriptPath",
+            "type": "pickString",
+            "description": "Select the R script to debug",
+            "options": [
+                "run_pipeline.R"
+            ]
+        }
+    ]
+}

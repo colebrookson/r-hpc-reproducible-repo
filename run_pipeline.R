@@ -34,22 +34,25 @@
 # ---------------------------------------------------------------------
 
 # ---- 1. draw the graph -------------------------------------------------------
-vis <- targets::tar_visnetwork(
-    targets_only = TRUE,
-    reporter     = "silent"
-)
-visNetwork::visSave(vis, "current_targets.html")
+# targets::tar_config_unset(c("reporter_outdated", "reporter_make"))
+# vis <- targets::tar_visnetwork(
+#     targets_only    = TRUE,
+#     reporter        = "balanced",
+#     callr_function  = NULL # ← run in the current session
+# )
 
-if (requireNamespace("webshot2", quietly = TRUE)) {
-    webshot2::webshot(
-        "current_targets.html",
-        "current_targets.png",
-        vwidth  = 1600,
-        vheight = 900
-    )
-} else {
-    message("webshot2 not available – skipped PNG export of DAG.")
-}
+# visNetwork::visSave(vis, "current_targets.html")
+
+# if (requireNamespace("webshot2", quietly = TRUE)) {
+#     webshot2::webshot(
+#         "current_targets.html",
+#         "current_targets.png",
+#         vwidth  = 1600,
+#         vheight = 900
+#     )
+# } else {
+#     message("webshot2 not available – skipped PNG export of DAG.")
+# }
 
 # ---- 2. run the pipeline -----------------------------------------------------
 targets::tar_make()
