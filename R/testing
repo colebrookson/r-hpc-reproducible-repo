@@ -1,0 +1,47 @@
+tar_source()
+model_function <- function(outcome_var, sex_val, dat) {
+  lm(as.formula(paste(outcome_var, " ~ age_bir + income + factor(region)")),
+    data = dat, subset = sex == sex_val
+  )
+}
+
+coef_function <- function(model) {
+  coef(model)[["age_bir"]]
+}
+targets_setup <- list(
+  tar_target(
+    csv,
+    "data/nlsy.csv",
+    format = "file"
+  ),
+  tar_target(
+    dat,
+    readr::read_csv(csv, show_col_types = FALSE)
+  )
+)
+
+targets_1 <- list(
+  tar_target(
+    model_1,
+    model_function(outcome_var = "sleep_wkdy", sex_val = 1, dat = dat)
+  ),
+  tar_target(
+    coef_1,
+    coef_function(model_1)
+  )
+)
+
+targets_2 <- tar_map(
+  values = tidyr::crossing(
+    outcome = c("sleep_wkdy", "sleep_wknd"),
+    sex = 1:2
+  ),
+  tar_target(
+    model_2,
+    model_function(outcome_var = outcome, sex_val = sex, dat = dat)
+  ),
+  tar_target(
+    coef_2,
+    coef_function(model_2)
+  )
+)

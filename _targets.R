@@ -59,11 +59,10 @@ model_plan <- tar_plan(
 model_map_plan <- tar_plan(
 
     # 3. fit each row ----------------------------------------------------------
-    mapped_models <- tar_map(
+    tarchetypes::tar_map(
         # 1. full grid ---------------------------------------------------------
-        mapping_tibble <- tibble::tibble(
-            build_model_grid()[, c("prior_sd", "formula", "family")]
-        ),
+        values = build_model_grid(),
+        names = model_id,
         # 2. make the target ---------------------------------------------------
         tar_target(
             mapped_models,
@@ -103,4 +102,4 @@ post_plan <- tar_plan(
 )
 
 ## pipeline object -------------------------------------------------------------
-list(data_plan, model_plan, post_plan)
+list(data_plan, model_plan, model_map_plan, post_plan)

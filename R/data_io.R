@@ -27,3 +27,24 @@ clean_demo_data <- function(df) {
 
     df
 }
+
+#' Sanitize a Branch Name String
+#'
+#' This function replaces all non-alphanumeric and non-underscore characters
+#' in a string with underscores. If the resulting string starts with a digit,
+#' it prepends an "X" to the string.
+#'
+#' @param x A character string representing a branch name.
+#'
+#' @return A sanitized character string suitable for use as a variable or
+#' branch name.
+#'
+#' @examples
+#' sanitize_branch("feature/new-branch")
+#' sanitize_branch("123branch")
+#'
+#' @export
+sanitize_branch <- function(x) {
+    x <- gsub("[^A-Za-z0-9_]+", "_", x)
+    ifelse(grepl("^[0-9]", x), paste0("X", x), x)
+}
