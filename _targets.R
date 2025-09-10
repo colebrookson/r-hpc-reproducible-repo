@@ -102,4 +102,9 @@ post_plan <- tar_plan(
 )
 
 ## pipeline object -------------------------------------------------------------
-list(data_plan, model_plan, model_map_plan, post_plan)
+list(
+    data_plan,
+    # model_plan,
+    model_map_plan
+    # post_plan
+)
