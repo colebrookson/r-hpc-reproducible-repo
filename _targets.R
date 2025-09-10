@@ -56,22 +56,26 @@ model_plan <- tar_plan(
 )
 
 # stage 2.1: model fitting in a different form ---------------------------------
-model_map_plan <- tar_plan(
-
-    # 3. fit each row ----------------------------------------------------------
-    tarchetypes::tar_map(
-        # 1. full grid ---------------------------------------------------------
-        values = build_model_grid()[1:4, ],
-        names = model_id,
-        # 2. make the target ---------------------------------------------------
-        tar_target(
-            mapped_models,
-            fit_models_map(
-                formula = formula,
-                prior_sd = prior_sd,
-                family = family,
-                data = clean_data
-            )
+model_map_plan <- tarchetypes::tar_map(
+    # 1. full grid ---------------------------------------------------------
+    values = build_model_grid()[1:4, ],
+    names = model_id,
+    # 2. make the target ---------------------------------------------------
+    tar_target(
+        mapped_models,
+        fit_models_map(
+            formula = formula,
+            prior_sd = prior_sd,
+            family = family,
+            data = clean_data
+        )
+    ),
+    tar_target(
+        mapped_preds,
+        plot_model_predictions(
+            fit = mapped_models,
+            data = clean_data,
+            slug = model_id
         )
     )
 )

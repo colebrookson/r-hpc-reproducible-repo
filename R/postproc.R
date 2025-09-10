@@ -202,12 +202,19 @@ diagnostic_plots <- function(fit, model_id, testing = FALSE) {
 #'
 #' @param fit   stanreg model object
 #' @param data  data.frame used to fit the model
+#' @param slug this keeps track of what model we're working with in
+#' human-readable
 #' @return      ggplot object
 #' @export
-plot_model_predictions <- function(fit, data) {
+plot_model_predictions <- function(
+    fit, data, slug,
+    base_dir = "./figs/predictions/") {
+    paths <- .build_paths(base_dir = base_dir, slug = slug)
+
     preds <- as.numeric(predict(fit, newdata = data))
     obs <- data[[as.character(formula(fit)[[2]])]] # get response variable
     df <- data.frame(observed = obs, predicted = preds)
+
     p <- ggplot2::ggplot(df, ggplot2::aes(x = observed, y = predicted)) +
         ggplot2::geom_point(alpha = 0.6) +
         ggplot2::geom_abline(
@@ -219,6 +226,5 @@ plot_model_predictions <- function(fit, data) {
             title = "Observed vs Predicted"
         ) +
         ggplot2::theme_bw()
-    print(p)
-    invisible(p)
+    ggsave(paths$prediction, p)
 }

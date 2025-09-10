@@ -48,3 +48,18 @@ sanitize_branch <- function(x) {
     x <- gsub("[^A-Za-z0-9_]+", "_", x)
     ifelse(grepl("^[0-9]", x), paste0("X", x), x)
 }
+
+#' build output file paths for figures
+#'
+#' @param base_dir base directory for outputs
+#' @param slug short identifier used in filenames
+#' @return list with prediction path
+.build_paths <- function(base_dir, slug) {
+    dir.create(base_dir, recursive = TRUE, showWarnings = FALSE)
+    list(
+        prediction = here::here(file.path(
+            base_dir,
+            paste0(slug, "-prediction.png")
+        ))
+    )
+}
