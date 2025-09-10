@@ -195,3 +195,30 @@ diagnostic_plots <- function(fit, model_id, testing = FALSE) {
         }
     }
 }
+
+#' plot_model_predictions
+#'
+#' Plots observed vs predicted values for a fitted model and its data
+#'
+#' @param fit   stanreg model object
+#' @param data  data.frame used to fit the model
+#' @return      ggplot object
+#' @export
+plot_model_predictions <- function(fit, data) {
+    preds <- as.numeric(predict(fit, newdata = data))
+    obs <- data[[as.character(formula(fit)[[2]])]] # get response variable
+    df <- data.frame(observed = obs, predicted = preds)
+    p <- ggplot2::ggplot(df, ggplot2::aes(x = observed, y = predicted)) +
+        ggplot2::geom_point(alpha = 0.6) +
+        ggplot2::geom_abline(
+            slope = 1, intercept = 0, linetype = "dashed",
+            color = "red"
+        ) +
+        ggplot2::labs(
+            x = "Observed", y = "Predicted",
+            title = "Observed vs Predicted"
+        ) +
+        ggplot2::theme_bw()
+    print(p)
+    invisible(p)
+}

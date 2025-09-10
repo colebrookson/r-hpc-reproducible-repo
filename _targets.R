@@ -61,7 +61,7 @@ model_map_plan <- tar_plan(
     # 3. fit each row ----------------------------------------------------------
     tarchetypes::tar_map(
         # 1. full grid ---------------------------------------------------------
-        values = build_model_grid(),
+        values = build_model_grid()[1:4, ],
         names = model_id,
         # 2. make the target ---------------------------------------------------
         tar_target(
